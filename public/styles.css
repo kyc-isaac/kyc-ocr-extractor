@@ -1,6 +1,11 @@
+/* Estilos generales */
 body {
-    background-color: #f8f9fa;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
 }
 
 .container {
@@ -9,47 +14,310 @@ body {
     padding: 20px;
 }
 
-.card {
+header {
+    text-align: center;
+    margin: 30px 0;
+}
+
+header h1 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+/* Estilos para el menú de extractores */
+.extractors-menu {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.extractor-option {
+    background-color: white;
     border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    width: 300px;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+    text-decoration: none;
+    color: inherit;
+}
+
+.extractor-option:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.option-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.extractor-option h2 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+/* Estilos para formularios */
+.card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+.btn {
+    display: inline-block;
+    padding: 12px 24px;
+    background-color: #3498db;
+    color: white;
     border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
 }
 
-.card-body {
-    padding: 2rem;
+.btn:hover {
+    background-color: #2980b9;
 }
 
-.btn-primary {
-    background-color: #0d6efd;
-    border: none;
-    padding: 10px 20px;
-    font-weight: 500;
-}
-
-.btn-primary:hover {
-    background-color: #0b5ed7;
-}
-
-#results {
-    font-size: 1.1rem;
-    line-height: 1.6;
-}
-
-#results h6 {
-    color: #0d6efd;
-    margin-top: 1.5rem;
-    margin-bottom: 0.5rem;
-}
-
-#results p {
-    margin-bottom: 1rem;
-}
-
-.spinner-border {
+.btn .spinner-border {
     margin-right: 8px;
 }
 
-.alert {
+/* Estilos para resultados */
+.results-container {
+    background-color: white;
     border-radius: 10px;
-    margin-top: 1rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    margin-top: 30px;
+}
+
+.results-container h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+.json-display {
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    padding: 20px;
+    font-family: 'Courier New', Courier, monospace;
+    white-space: pre-wrap;
+    overflow-x: auto;
+}
+
+/* Estilos para tablas */
+.table-container {
+    margin-top: 30px;
+}
+
+.table-container h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+.blocked-persons-table,
+.acta-info-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.blocked-persons-table th,
+.blocked-persons-table td,
+.acta-info-table th,
+.acta-info-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.blocked-persons-table th,
+.acta-info-table th {
+    background-color: #f1f8ff;
+    color: #2c3e50;
+    font-weight: 600;
+    width: 35%;
+}
+
+.blocked-persons-table tr:last-child td,
+.acta-info-table tr:last-child td {
+    border-bottom: none;
+}
+
+.blocked-persons-table tr:hover,
+.acta-info-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Estilos para pestañas de Acta Constitutiva */
+.tab-container {
+    margin-top: 20px;
+}
+
+.tab-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
+
+.tab-button {
+    padding: 10px 15px;
+    background-color: #f1f1f1;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 500;
+    color: #555;
+    transition: all 0.3s;
+}
+
+.tab-button:hover {
+    background-color: #e0e0e0;
+}
+
+.tab-button.active {
+    background-color: #3498db;
+    color: white;
+}
+
+.tab {
+    display: none;
+}
+
+.tab.active {
+    display: block;
+}
+
+/* Estilos para textos expandibles */
+.expandable-text {
+    position: relative;
+}
+
+.short-text, .full-text {
+    padding: 0;
+    margin: 0;
+}
+
+.expand-btn, .collapse-btn {
+    display: inline-block;
+    background-color: transparent;
+    color: #3498db;
+    border: none;
+    padding: 0;
+    margin-left: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 500;
+    text-decoration: underline;
+}
+
+.expand-btn:hover, .collapse-btn:hover {
+    color: #2980b9;
+}
+
+/* Mensaje de error */
+.error-message {
+    color: #e74c3c;
+    padding: 15px;
+    background-color: #fdf0f0;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+/* Utilidades */
+.d-none {
+    display: none !important;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mt-4 {
+    margin-top: 1.5rem;
+}
+
+/* Estilos de spinner */
+.spinner-border {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+    border: 3px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border .75s linear infinite;
+}
+
+@keyframes spinner-border {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .extractors-menu {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .extractor-option {
+        width: 100%;
+        max-width: 350px;
+    }
+    
+    .blocked-persons-table,
+    .acta-info-table {
+        display: block;
+        overflow-x: auto;
+    }
+    
+    .tab-buttons {
+        justify-content: center;
+    }
+    
+    .tab-button {
+        flex: 1 0 auto;
+        text-align: center;
+        font-size: 0.9em;
+    }
 } 

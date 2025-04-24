@@ -1,93 +1,148 @@
-# Extractor de Actas Constitutivas
+# Extractor de Documentos
 
-Sistema web para extraer información de actas constitutivas de empresas mexicanas utilizando OCR y procesamiento de lenguaje natural.
+Sistema para extraer información estructurada de documentos mediante OCR y procesamiento de lenguaje natural. Actualmente soporta dos tipos de documentos:
 
-## Características
+1. **Actas Constitutivas Mexicanas**: Extrae información clave de actas constitutivas, como razón social, socios, objeto social, etc.
+2. **Listas de Personas Bloqueadas (LPB)**: Extrae información de personas y entidades incluidas en listas de bloqueados, identificando nombres, alias y datos adicionales.
 
-- Interfaz web moderna y responsiva
-- Procesamiento de documentos mediante OCR (Tesseract.js)
-- Extracción inteligente de información mediante OpenAI GPT-4
-- Soporte para archivos PDF, JPG, JPEG y PNG
-- Extracción de información clave como:
-  - Razón social
-  - Socios y accionistas
-  - Objeto social
-  - Capital social
-  - Representante legal
-  - Y más...
+## Requisitos
 
-## Requisitos Previos
-
-- Node.js (v14 o superior)
-- npm (v6 o superior)
-- Cuenta de OpenAI con API key
+- Node.js (versión 14 o superior)
+- NPM
+- Poppler (para la conversión de PDF a imágenes)
+- Cairo (dependencia de Poppler)
+- Una clave API de OpenAI
 
 ## Instalación
 
-1. Clona el repositorio:
-```bash
-git clone [url-del-repositorio]
-cd acta-extractor
+1. Clonar el repositorio:
+   ```
+   git clone <URL_DEL_REPOSITORIO>
+   cd kyc-ocr-extractor
+   ```
+
+2. Instalar las dependencias:
+   ```
+   npm install
+   ```
+
+3. Instalar Poppler y sus dependencias:
+
+   **En macOS (Recomendado):**
+   Usa nuestro script de instalación automatizado que configura todas las dependencias:
+   ```
+   ./install-mac.sh
+   ```
+   Este script instalará Homebrew (si no está instalado), Node.js, Poppler y Cairo.
+
+   **Instalación manual en macOS:**
+   ```
+   brew install poppler
+   brew install cairo
+   ```
+
+   **En Windows:**
+   - Descargar la última versión desde: https://github.com/oschwartz10612/poppler-windows/releases/
+   - Extraer el contenido y agregar la carpeta `bin` al PATH del sistema
+
+   **En Linux (Ubuntu/Debian):**
+   ```
+   sudo apt-get install poppler-utils
+   sudo apt-get install libcairo2-dev
+   ```
+
+4. Crear un archivo `.env` en la raíz del proyecto con tu clave API de OpenAI:
+   ```
+   OPENAI_API_KEY=tu_clave_api_aqui
+   ```
+
+## Ejecutar el Proyecto
+
+1. Iniciar el servidor:
+   ```
+   npm start
+   ```
+
+2. Abrir un navegador web y acceder a:
+   ```
+   http://localhost:3000
+   ```
+
+## Solución de problemas
+
+### macOS
+Si encuentras errores relacionados con bibliotecas faltantes en macOS como:
+```
+dyld[XXXXX]: Library not loaded: /usr/local/opt/cairo/lib/libcairo.2.dylib
 ```
 
-2. Instala las dependencias:
-```bash
-npm install
+Ejecuta nuestro script de instalación:
+```
+./install-mac.sh
 ```
 
-3. Configura las variables de entorno:
-   - Copia el archivo `.env.example` a `.env`
-   - Agrega tu API key de OpenAI en el archivo `.env`
+El proyecto ahora incluye una detección automática para macOS y utilizará el binario de poppler instalado por Homebrew en lugar del incluido en node_modules.
 
-4. Crea el directorio de uploads:
-```bash
-mkdir uploads
-```
+### Windows
+En Windows, asegúrate de que Poppler esté correctamente instalado y que la carpeta `bin` esté en el PATH del sistema.
 
-## Uso
+## Características
 
-1. Inicia el servidor:
-```bash
-npm start
-```
-
-2. Abre tu navegador y visita:
-```
-http://localhost:3000
-```
-
-3. Sube un archivo de acta constitutiva y espera los resultados.
+- **Interfaz Intuitiva**: Menú principal para seleccionar el tipo de documento a procesar.
+- **Procesamiento Modular**: Cada tipo de documento tiene su propio módulo especializado.
+- **OCR Avanzado**: Utiliza GPT-4o para extraer texto de documentos y procesarlo.
+- **Manejo de Diferentes Formatos**: Soporta PDF y archivos de imagen (JPEG, PNG).
+- **Manejo Robusto de Errores**: Sistema de recuperación ante errores y gestión de archivos temporales.
+- **Visualización Estructurada**: Presentación de resultados en formato JSON.
+- **Compatibilidad Multiplataforma**: Soporte optimizado para Windows, macOS y Linux.
 
 ## Estructura del Proyecto
 
 ```
-acta-extractor/
+kyc-ocr-extractor/
+├── modules/
+│   ├── acta-constitutiva.js    # Procesamiento de actas constitutivas
+│   ├── lista-bloqueados.js     # Procesamiento de listas de personas bloqueadas
+│   └── poppler-fix.js          # Solución para problemas con Poppler en macOS
 ├── public/
-│   ├── index.html
-│   ├── styles.css
-│   └── script.js
-├── uploads/
-├── server.js
-├── package.json
-├── .env
-└── README.md
+│   ├── js/
+│   │   ├── acta-constitutiva.js    # Frontend para actas constitutivas
+│   │   └── lista-bloqueados.js     # Frontend para listas de bloqueados
+│   ├── acta-constitutiva.html  # Página para actas constitutivas
+│   ├── lista-bloqueados.html   # Página para listas de bloqueados
+│   ├── index.html              # Página principal
+│   ├── styles.css              # Estilos CSS
+│   └── script.js               # Script de redirección
+├── uploads/                    # Carpeta para archivos subidos (creada automáticamente)
+├── .env                        # Variables de entorno
+├── server.js                   # Servidor principal
+├── install-mac.sh              # Script de instalación para macOS
+├── package.json                # Dependencias NPM
+└── README.md                   # Este archivo
 ```
 
-## Tecnologías Utilizadas
+## Cómo Funciona
 
-- Frontend: HTML, CSS, JavaScript, Bootstrap 5
-- Backend: Node.js, Express
-- OCR: Tesseract.js
-- Procesamiento de Lenguaje: OpenAI GPT-4
-- Manejo de Archivos: Multer
+1. El usuario selecciona el tipo de documento que desea procesar
+2. Sube el documento (PDF o imagen)
+3. El servidor procesa el documento usando el módulo correspondiente:
+   - Convierte PDF a imágenes usando Poppler
+   - Procesa cada imagen con Sharp para optimizarla
+   - Utiliza la API de OpenAI para extraer texto (OCR)
+   - Aplica procesamiento adicional para estructurar la información
+4. Devuelve los resultados estructurados en formato JSON
+5. El cliente muestra los resultados de forma amigable
 
-## Notas Importantes
+## Personalización
 
-- El sistema está optimizado para procesar actas constitutivas en español
-- La calidad de la extracción depende de la calidad del documento escaneado
-- Se recomienda usar documentos con buena resolución y contraste
-- El procesamiento puede tomar algunos segundos dependiendo del tamaño del documento
+Para agregar soporte para nuevos tipos de documentos:
+
+1. Crear un nuevo módulo en la carpeta `modules/`
+2. Agregar las funciones `processOCR`, `processWithAI` y `cleanupTempFiles`
+3. Actualizar `server.js` para incluir el nuevo módulo
+4. Crear los archivos HTML y JS correspondientes en la carpeta `public/`
+5. Actualizar `index.html` para agregar el nuevo tipo de documento al menú
 
 ## Licencia
 
-MIT 
+Este proyecto está licenciado bajo [Incluir la licencia]. 

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extractor de Listas de Personas Bloqueadas</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Asegurar que el spinner esté oculto al inicio */
+        .spinner-border.d-none {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Extractor de Listas de Personas Bloqueadas</h1>
+            <p>Sube un documento de lista de personas bloqueadas (LPB) y extraeremos la información automáticamente</p>
+            <a href="index.html" class="btn" style="margin-top: 10px;">Volver al inicio</a>
+        </header>
+
+        <div class="card">
+            <form id="uploadForm">
+                <div class="form-group">
+                    <label for="document" class="form-label">Selecciona el archivo de lista de personas bloqueadas</label>
+                    <input class="form-control" type="file" id="document" accept=".pdf,.jpg,.jpeg,.png" required>
+                </div>
+                <button type="submit" class="btn" id="uploadButton">
+                    <span class="spinner-border d-none" id="spinner"></span>
+                    Procesar Documento
+                </button>
+            </form>
+        </div>
+
+        <div class="results-container d-none" id="resultsContainer">
+            <h2>Personas y Entidades Bloqueadas</h2>
+            <div id="results" class="json-display"></div>
+        </div>
+    </div>
+
+    <script src="js/lista-bloqueados.js"></script>
+</body>
+</html> 
