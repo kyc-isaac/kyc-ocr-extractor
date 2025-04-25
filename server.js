@@ -13,13 +13,13 @@ const openaiProcessor = require("./modules/openai_processor"); // Use updated pr
 const app = express();
 const port = process.env.PORT || 3042;
 // Configuración de ruta base para entornos de producción
-const basePath = ""; // Ya nos encargamos del prefijo en Apache
+const basePath = "/kyc-ocr-extractor"; // La ruta base tal como llega del proxy
 const UPLOAD_DIR = path.join(__dirname, "uploads");
 
 // --- Middleware ---
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(basePath, express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public")));
 
 // Configuración de depuración para ver las rutas
 app.use((req, res, next) => {
@@ -67,13 +67,25 @@ const upload = multer({
 });
 
 // --- HTML Page Routes ---
-app.get(`${basePath}/`, (req, res) =>
+// Maneja tanto la ruta base como la raíz
+app.get([`${basePath}`, `${basePath}/`], (req, res) =>
   res.sendFile(path.join(__dirname, "views", "index.html"))
 );
 app.get(`${basePath}/acta-constitutiva`, (req, res) =>
   res.sendFile(path.join(__dirname, "views", "acta-constitutiva.html"))
 );
 app.get(`${basePath}/lista-bloqueados`, (req, res) =>
+  res.sendFile(path.join(__dirname, "views", "lista-bloqueados.html"))
+);
+
+// También mantener las rutas sin prefijo para entornos de desarrollo
+app.get("/", (req, res) =>
+  res.sendFile(path.join(__dirname, "views", "index.html"))
+);
+app.get("/acta-constitutiva", (req, res) =>
+  res.sendFile(path.join(__dirname, "views", "acta-constitutiva.html"))
+);
+app.get("/lista-bloqueados", (req, res) =>
   res.sendFile(path.join(__dirname, "views", "lista-bloqueados.html"))
 );
 
@@ -102,6 +114,12 @@ Query params: ${JSON.stringify(req.query, null, 2)}
           <li><a href="${basePath}/">Página principal</a></li>
           <li><a href="${basePath}/acta-constitutiva">Acta Constitutiva</a></li>
           <li><a href="${basePath}/lista-bloqueados">Lista Bloqueados</a></li>
+        </ul>
+        <p>Nota: También puedes acceder directamente a estas URLs:</p>
+        <ul>
+          <li><a href="/kyc-ocr-extractor">Página principal</a></li>
+          <li><a href="/kyc-ocr-extractor/acta-constitutiva">Acta Constitutiva</a></li>
+          <li><a href="/kyc-ocr-extractor/lista-bloqueados">Lista Bloqueados</a></li>
         </ul>
       </body>
     </html>
@@ -349,8 +367,172 @@ function mergeListaBloqueadosData(pageResults) {
 }
 
 // --- API Route for Processing Uploads ---
+// Ruta con el prefijo para producción
 app.post(
   `${basePath}/api/upload`,
+  upload.single("document"),
+  async (req, res) => {
+    let uploadedFilePath = null;
+    let tempImagePaths = [];
+    let imageOutputDir = null;
+
+    try {
+      // --- Input Validation ---
+      if (!req.file) {
+        return res
+          .status(400)
+          .json({ success: false, error: "No se subió ningún archivo PDF." });
+      }
+      uploadedFilePath = req.file.path;
+      const documentType = req.body.documentType;
+      if (
+        !documentType ||
+        (documentType !== "acta-constitutiva" &&
+          documentType !== "lista-bloqueados")
+      ) {
+        if (uploadedFilePath)
+          await fs
+            .unlink(uploadedFilePath)
+            .catch((err) => console.warn(`Cleanup error: ${err.message}`));
+        return res
+          .status(400)
+          .json({
+            success: false,
+            error: "Tipo de documento inválido o no especificado.",
+          });
+      }
+      console.log(
+        `[Server] Processing ${documentType} from file: ${uploadedFilePath}`
+      );
+
+      // --- Step 1: Convert PDF to Images ---
+      console.log("[Server] Step 1: Converting PDF to images...");
+      imageOutputDir = path.join(
+        UPLOAD_DIR,
+        `images_${path.basename(uploadedFilePath, ".pdf")}_${Date.now()}`
+      );
+      await fs.mkdir(imageOutputDir);
+      tempImagePaths = await pdfProcessor.convertPdfToImages(
+        uploadedFilePath,
+        imageOutputDir
+      );
+      console.log(`[Server] Generated ${tempImagePaths.length} images.`);
+      if (tempImagePaths.length === 0) {
+        throw new Error("No se pudieron generar imágenes a partir del PDF.");
+      }
+
+      // --- Step 2: Extract STRUCTURED Data from Each Image ---
+      console.log(
+        "[Server] Step 2: Extracting structured data per page using OpenAI..."
+      );
+      let pageCount = 0;
+      const totalPages = tempImagePaths.length;
+      const extractionPromises = [];
+
+      for (const imagePath of tempImagePaths) {
+        extractionPromises.push(
+          (async (imgPath, pageNum) => {
+            try {
+              const base64Image = await fs.readFile(imgPath, {
+                encoding: "base64",
+              });
+              const pageJsonData = await openaiProcessor.extractDataFromPage(
+                base64Image,
+                pageNum,
+                documentType
+              );
+              return pageJsonData;
+            } catch (imageProcessingError) {
+              console.warn(
+                `[Server] Warning processing page ${pageNum}: ${imageProcessingError.message}`
+              );
+              return null;
+            }
+          })(imagePath, ++pageCount)
+        );
+      }
+
+      const pageResults = await Promise.all(extractionPromises);
+      console.log(
+        `[Server] Data extraction complete. Received results for ${
+          pageResults.filter((r) => r !== null).length
+        } out of ${totalPages} pages.`
+      );
+
+      const validPageResults = pageResults.filter((result) => result !== null);
+      if (validPageResults.length === 0) {
+        throw new Error(
+          "No se pudo extraer información estructurada de ninguna página del documento."
+        );
+      }
+
+      // --- Step 3: Merge Page Data ---
+      console.log("[Server] Step 3: Merging data from all pages...");
+      let finalJsonData;
+      if (documentType === "acta-constitutiva") {
+        finalJsonData = mergeActaConstitutivaData(validPageResults); // Use the refined merge function
+      } else if (documentType === "lista-bloqueados") {
+        finalJsonData = mergeListaBloqueadosData(validPageResults);
+      } else {
+        throw new Error(
+          "Tipo de documento desconocido durante la fusión de datos."
+        );
+      }
+      console.log("[Server] Merging complete.");
+      // console.log("[Server] Final Merged JSON:", JSON.stringify(finalJsonData, null, 2)); // Uncomment for debugging
+
+      // --- Step 4: Send Successful Response ---
+      res.json({ success: true, data: finalJsonData });
+    } catch (error) {
+      // --- Error Handling ---
+      console.error("[Server] Error during file processing pipeline:", error);
+      const statusCode =
+        error.message.includes("PDF") ||
+        error.message.includes("Tipo de documento") ||
+        error.status === 400
+          ? 400
+          : error.status === 429
+          ? 429
+          : 500;
+      const clientErrorMessage =
+        statusCode === 400 ||
+        statusCode === 429 ||
+        error.message.startsWith("La respuesta") ||
+        error.message.startsWith("Error en la API") ||
+        error.message.startsWith("No se pudo extraer")
+          ? error.message
+          : "Ocurrió un error inesperado en el servidor al procesar el documento.";
+
+      res
+        .status(statusCode)
+        .json({ success: false, error: clientErrorMessage });
+    } finally {
+      // --- Step 5: Cleanup Temporary Files ---
+      console.log("[Server] Step 5: Cleaning up temporary files...");
+      if (uploadedFilePath) {
+        await fs
+          .unlink(uploadedFilePath)
+          .catch((err) =>
+            console.warn(`[Cleanup Warn] Failed to delete PDF: ${err.message}`)
+          );
+      }
+      if (imageOutputDir) {
+        await fs
+          .rm(imageOutputDir, { recursive: true, force: true })
+          .catch((err) =>
+            console.warn(
+              `[Cleanup Warn] Failed to delete image directory: ${err.message}`
+            )
+          );
+      }
+      console.log("[Server] Cleanup finished.");
+    }
+  }
+);
+
+// Duplicar la ruta API sin prefijo para desarrollo
+app.post(
+  `/api/upload`,
   upload.single("document"),
   async (req, res) => {
     let uploadedFilePath = null;
@@ -515,12 +697,16 @@ app.post(
 ensureUploadDirExists()
   .then(() => {
     app.listen(port, () => {
-      console.log(`Servidor corriendo en http://localhost:${port}`);
-      console.log(`Upload directory: ${UPLOAD_DIR}`);
+      console.log(`🚀 Servidor corriendo en http://localhost:${port}`);
+      console.log(`📊 Rutas principales:`);
+      console.log(`   - Local: http://localhost:${port}${basePath}/`);
+      console.log(`   - Desarrollo: http://localhost:${port}/`);
+      console.log(`   - Producción (con proxy): https://kyc-servicios.com${basePath}/`);
+      console.log(`📁 Upload directory: ${UPLOAD_DIR}`);
       
       // Verificar si se ha configurado la API key de OpenAI
       if (process.env.OPENAI_API_KEY) {
-        console.log("OPENAI_API_KEY encontrada.");
+        console.log("✅ OPENAI_API_KEY encontrada.");
       } else {
         console.warn("⚠️ OPENAI_API_KEY no configurada. La extracción de datos no funcionará correctamente.");
       }
