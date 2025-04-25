@@ -12,10 +12,13 @@ const listaBloqueados = require('./modules/lista-bloqueados');
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Añadir al principio del archivo, después de las constantes
+const basePath = '/kyc-ocr-extractor';
+
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+app.use(basePath, express.static('public'));
 
 /**
  * Configuración de almacenamiento para Multer
@@ -75,7 +78,7 @@ if (!fs.existsSync('uploads')) {
  * Maneja la carga del archivo, procesamiento OCR y análisis con IA
  * @route POST /api/upload
  */
-app.post('/api/upload', upload.single('document'), async (req, res) => {
+app.post(`${basePath}/api/upload`, upload.single('document'), async (req, res) => {
     const tempFilesToDelete = [];
     try {
         if (!req.file) {
