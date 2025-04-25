@@ -11,7 +11,7 @@ const openaiProcessor = require("./modules/openai_processor"); // Use updated pr
 
 // --- Configuration ---
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3042;
 const basePath = process.env.BASE_PATH || "";
 const UPLOAD_DIR = path.join(__dirname, "uploads");
 
@@ -477,13 +477,14 @@ app.post(
 ensureUploadDirExists()
   .then(() => {
     app.listen(port, () => {
-      const serverUrl = `http://localhost:${port}${basePath || ""}`;
-      console.log(`Servidor corriendo en ${serverUrl}`);
+      console.log(`Servidor corriendo en http://localhost:${port}/kyc-ocr-extractor`);
       console.log(`Upload directory: ${UPLOAD_DIR}`);
-      if (!process.env.OPENAI_API_KEY) {
-        console.warn("¡ADVERTENCIA! OPENAI_API_KEY no está configurada.");
-      } else {
+      
+      // Verificar si se ha configurado la API key de OpenAI
+      if (process.env.OPENAI_API_KEY) {
         console.log("OPENAI_API_KEY encontrada.");
+      } else {
+        console.warn("⚠️ OPENAI_API_KEY no configurada. La extracción de datos no funcionará correctamente.");
       }
     });
   })
