@@ -514,5 +514,41 @@ document.addEventListener("DOMContentLoaded", () => {
     html += `</div>`;
     
     tableContainer.innerHTML = html;
+
+    // Mostrar el botón de exportación a Excel
+    const exportButton = document.getElementById('exportTableButton');
+    if (exportButton) {
+      exportButton.classList.remove('hidden');
+      exportButton.addEventListener('click', () => exportToExcel(entries, columns));
+    }
+  }
+
+  // Función para exportar a Excel
+  function exportToExcel(entries, columns) {
+    // Crear un libro de Excel
+    const wb = XLSX.utils.book_new();
+    
+    // Convertir los datos a formato de hoja de cálculo
+    const wsData = entries.map(entry => {
+      const row = {};
+      columns.forEach(col => {
+        const value = entry[col.key];
+        row[col.label] = Array.isArray(value) ? value.join(', ') : value;
+      });
+      return row;
+    });
+    
+    // Crear la hoja de cálculo
+    const ws = XLSX.utils.json_to_sheet(wsData);
+    
+    // Ajustar el ancho de las columnas
+    const wscols = columns.map(() => ({ wch: 30 }));
+    ws['!cols'] = wscols;
+    
+    // Añadir la hoja al libro
+    XLSX.utils.book_append_sheet(wb, ws, "Lista de Bloqueados");
+    
+    // Generar el archivo Excel
+    XLSX.writeFile(wb, "lista_bloqueados.xlsx");
   }
 });

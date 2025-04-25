@@ -23,7 +23,8 @@
             line-height: 1.6;
             white-space: pre-wrap;
             word-wrap: break-word;
-            margin-top: 1.5rem;
+            max-height: 400px;
+            overflow-y: auto;
         }
 
         .spinner {
@@ -42,6 +43,9 @@
             width: 100%;
             overflow-x: auto;
             margin-bottom: 1rem;
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .data-table {
@@ -52,19 +56,22 @@
 
         .data-table th,
         .data-table td {
-            padding: 0.5rem;
+            padding: 0.75rem;
             text-align: left;
             border: 1px solid #e5e7eb;
-            max-width: 200px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            white-space: normal;
+            word-wrap: break-word;
+            min-width: 150px;
+            max-width: 300px;
         }
 
         .data-table th {
             background-color: #f3f4f6;
             font-weight: 600;
             color: #374151;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .data-table tr:nth-child(even) {
@@ -98,9 +105,11 @@
 
         .document-info th,
         .document-info td {
-            padding: 0.5rem;
+            padding: 0.75rem;
             text-align: left;
             border: 1px solid #e5e7eb;
+            white-space: normal;
+            word-wrap: break-word;
         }
 
         .document-info th {
@@ -113,7 +122,7 @@
         @media (max-width: 640px) {
             .data-table th,
             .data-table td {
-                padding: 0.375rem;
+                padding: 0.5rem;
                 font-size: 0.75rem;
             }
 
@@ -123,7 +132,7 @@
 
             .document-info th,
             .document-info td {
-                padding: 0.375rem;
+                padding: 0.5rem;
                 font-size: 0.75rem;
             }
         }
@@ -176,26 +185,39 @@
     </div>
 
     <div id="resultsContainer" class="results-container bg-white rounded-lg shadow-md p-8 w-full max-w-full hidden">
-        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Personas y Entidades Bloqueadas</h2>
-        <div id="errorMessage"
-            class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 hidden" role="alert">
-            <strong class="font-bold">Error:</strong>
-            <span class="block sm:inline" id="errorText"></span>
-        </div>
-        
-        <!-- Sección de JSON -->
-        <h3 class="text-xl font-semibold text-gray-800 mb-3">Respuesta JSON</h3>
-        <div id="results" class="json-display">
-            Esperando resultados...
-        </div>
-        <button id="copyButton"
-            class="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200 hidden">
-            Copiar JSON
-        </button>
-        
-        <!-- Contenedor para la tabla -->
-        <div id="tableContainer" class="table-container mt-8">
-            <!-- La tabla se generará dinámicamente aquí -->
+        <div class="flex flex-col space-y-8">
+            <!-- Sección de JSON -->
+            <div class="json-section">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold text-gray-800">Respuesta JSON</h3>
+                    <button id="copyButton"
+                        class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200 hidden">
+                        Copiar JSON
+                    </button>
+                </div>
+                <div id="results" class="json-display">
+                    Esperando resultados...
+                </div>
+            </div>
+
+            <!-- Sección de Tabla -->
+            <div class="table-section">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold text-gray-800">Vista Tabular</h3>
+                    <button id="exportTableButton"
+                        class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 hidden">
+                        Exportar a Excel
+                    </button>
+                </div>
+                <div id="errorMessage"
+                    class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 hidden" role="alert">
+                    <strong class="font-bold">Error:</strong>
+                    <span class="block sm:inline" id="errorText"></span>
+                </div>
+                <div id="tableContainer" class="table-container">
+                    <!-- La tabla se generará dinámicamente aquí -->
+                </div>
+            </div>
         </div>
     </div>
 
