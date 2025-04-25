@@ -11,6 +11,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusMessageDiv = document.getElementById("statusMessage"); 
   const tableContainer = document.getElementById("tableContainer"); 
 
+  // Variables globales para almacenar los datos de la tabla
+  let currentEntries = [];
+  let currentColumns = [];
+  let currentDocumentInfo = {};
+
   // Asegurar que el botón tenga el texto y el spinner
   if (uploadButton) {
     if (!buttonText.parentNode) {
@@ -387,6 +392,14 @@ document.addEventListener("DOMContentLoaded", () => {
     
     console.log(`Se detectaron ${entries.length} entradas para mostrar en la tabla`);
     
+    // Guardar los datos actuales en las variables globales
+    currentEntries = entries;
+    currentDocumentInfo = {
+      documentNumber: data.documentNumber,
+      documentType: data.documentType,
+      agreement: data.agreement
+    };
+    
     let html = `
       <div class="mt-8">
         <h3 class="text-xl font-semibold text-gray-800 mb-4">Vista de Tabla</h3>`;
@@ -468,6 +481,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
       
+      // Guardar las columnas actuales
+      currentColumns = columns;
+      
       html += `
         <div class="overflow-x-auto">
           <h4 class="text-lg font-semibold text-gray-700 mb-2">Personas y Entidades</h4>
@@ -519,25 +535,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const exportButton = document.getElementById('exportTableButton');
     if (exportButton) {
       exportButton.classList.remove('hidden');
-      exportButton.addEventListener('click', () => exportToExcel(entries, columns, {
-        documentNumber: data.documentNumber,
-        documentType: data.documentType,
-        agreement: data.agreement
-      }));
+      exportButton.addEventListener('click', exportToExcel);
     }
   }
 
   // Función para exportar a Excel
-  function exportToExcel(entries, columns, documentInfo) {
+  function exportToExcel() {
+    if (!currentEntries.length) {
+      console.error('No hay datos para exportar');
+      return;
+    }
+
     // Crear un libro de Excel
     const wb = XLSX.utils.book_new();
     
     // Crear hoja de información del documento
     const docInfo = [
       ['Información del Documento'],
-      ['Número de Oficio', documentInfo.documentNumber || ''],
-      ['Tipo de Documento', documentInfo.documentType || ''],
-      ['Acuerdo', documentInfo.agreement || ''],
+      ['Número de Oficio', currentDocumentInfo.documentNumber || ''],
+      ['Tipo de Documento', currentDocumentInfo.documentType || ''],
+      ['Acuerdo', currentDocumentInfo.agreement || ''],
       ['', ''], // Línea en blanco
       ['Personas y Entidades Bloqueadas'],
       ['', ''] // Línea en blanco
@@ -552,9 +569,9 @@ document.addEventListener("DOMContentLoaded", () => {
     XLSX.utils.book_append_sheet(wb, wsInfo, "Información");
     
     // Convertir los datos a formato de hoja de cálculo
-    const wsData = entries.map(entry => {
+    const wsData = currentEntries.map(entry => {
       const row = {};
-      columns.forEach(col => {
+      currentColumns.forEach(col => {
         const value = entry[col.key];
         row[col.label] = Array.isArray(value) ? value.join(', ') : value;
       });
@@ -565,14 +582,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const ws = XLSX.utils.json_to_sheet(wsData);
     
     // Ajustar el ancho de las columnas
-    const wscols = columns.map(() => ({ wch: 30 }));
+    const wscols = currentColumns.map(() => ({ wch: 30 }));
     ws['!cols'] = wscols;
     
     // Añadir la hoja de personas al libro
     XLSX.utils.book_append_sheet(wb, ws, "Personas");
     
     // Generar el archivo Excel
-    const fileName = `lista_bloqueados_${documentInfo.documentNumber || 'sin_numero'}.xlsx`;
+    const fileName = `lista_bloqueados_${currentDocumentInfo.documentNumber || 'sin_numero'}.xlsx`;
     XLSX.writeFile(wb, fileName);
   }
 });
