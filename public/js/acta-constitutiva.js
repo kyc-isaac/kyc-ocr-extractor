@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
             // Enviar solicitud al servidor
-            const response = await fetch('/api/upload', {
+            const response = await fetch(`${window.basePath}/api/upload`, {
                 method: 'POST',
                 body: formData
             });

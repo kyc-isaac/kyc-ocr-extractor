@@ -1,0 +1,33 @@
+<%- include('partials/header') %>
+
+<header>
+    <h1>Extractor de Actas Constitutivas</h1>
+    <p>Sube un acta constitutiva mexicana y extraeremos la información automáticamente</p>
+    <a href="<%= basePath %>/" class="btn" style="margin-top: 10px;">Volver al inicio</a>
+</header>
+
+<div class="card">
+    <form id="uploadForm">
+        <div class="form-group">
+            <label for="document" class="form-label">Selecciona el archivo del acta constitutiva</label>
+            <input class="form-control" type="file" id="document" accept=".pdf,.jpg,.jpeg,.png" required>
+        </div>
+        <button type="submit" class="btn" id="uploadButton">
+            <span class="spinner-border d-none" id="spinner"></span>
+            Procesar Documento
+        </button>
+    </form>
+</div>
+
+<div class="results-container d-none" id="resultsContainer">
+    <h2>Información Extraída</h2>
+    <div id="results" class="json-display"></div>
+</div>
+
+<script>
+    // Definir la variable global para que los scripts JS puedan acceder a la ruta base
+    window.basePath = '<%= basePath %>';
+</script>
+<script src="<%= basePath %>/js/acta-constitutiva.js"></script>
+
+<%- include('partials/footer') %> 

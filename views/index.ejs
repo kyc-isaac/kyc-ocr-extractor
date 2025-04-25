@@ -1,0 +1,22 @@
+<%- include('partials/header') %>
+
+<header>
+    <h1>Extractores de Documentos</h1>
+    <p>Seleccione el tipo de documento que desea procesar:</p>
+</header>
+
+<div class="extractors-menu">
+    <a href="<%= basePath %>/acta-constitutiva" class="extractor-option">
+        <div class="option-icon">📄</div>
+        <h2>Acta Constitutiva</h2>
+        <p>Extractor de información de Actas Constitutivas Mexicanas</p>
+    </a>
+
+    <a href="<%= basePath %>/lista-bloqueados" class="extractor-option">
+        <div class="option-icon">🚫</div>
+        <h2>Lista de Personas Bloqueadas</h2>
+        <p>Extractor de información de Listas de Personas Bloqueadas (LPB)</p>
+    </a>
+</div>
+
+<%- include('partials/footer') %> 

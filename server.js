@@ -11,11 +11,17 @@ const listaBloqueados = require('./modules/lista-bloqueados');
 
 const app = express();
 const port = process.env.PORT || 3000;
+const basePath = '/kyc-ocr-extractor'; // Base path para todas las rutas
+
+// Configuración del motor de plantillas EJS
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+// Servir archivos estáticos con el base path correcto
+app.use(`${basePath}`, express.static('public'));
 
 /**
  * Configuración de almacenamiento para Multer
@@ -70,12 +76,36 @@ if (!fs.existsSync('uploads')) {
     fs.mkdirSync('uploads');
 }
 
+// Rutas para las vistas con el base path
+app.get(`${basePath}/`, (req, res) => {
+    res.render('index', { 
+        title: 'Extractores de Documentos',
+        basePath: basePath 
+    });
+});
+
+app.get(`${basePath}/acta-constitutiva`, (req, res) => {
+    res.render('acta-constitutiva', { 
+        title: 'Extractor de Actas Constitutivas',
+        basePath: basePath,
+        customStyles: '.spinner-border.d-none { display: none !important; }' 
+    });
+});
+
+app.get(`${basePath}/lista-bloqueados`, (req, res) => {
+    res.render('lista-bloqueados', { 
+        title: 'Extractor de Listas de Personas Bloqueadas',
+        basePath: basePath,
+        customStyles: '.spinner-border.d-none { display: none !important; }' 
+    });
+});
+
 /**
  * Ruta API para procesar documentos cargados
  * Maneja la carga del archivo, procesamiento OCR y análisis con IA
  * @route POST /api/upload
  */
-app.post('/api/upload', upload.single('document'), async (req, res) => {
+app.post(`${basePath}/api/upload`, upload.single('document'), async (req, res) => {
     const tempFilesToDelete = [];
     try {
         if (!req.file) {
@@ -158,5 +188,5 @@ app.post('/api/upload', upload.single('document'), async (req, res) => {
  * Escucha solicitudes entrantes y muestra mensaje en consola
  */
 app.listen(port, () => {
-    console.log(`Servidor corriendo en http://localhost:${port}`);
+    console.log(`Servidor corriendo en http://localhost:${port}${basePath}`);
 }); 
