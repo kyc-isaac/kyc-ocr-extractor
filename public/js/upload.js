@@ -16,6 +16,20 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentColumns = [];
   let currentDocumentInfo = {};
 
+  // Columnas predefinidas en orden preferido
+  const preferredColumns = [
+    { key: 'fullName', label: 'Nombre' },
+    { key: 'name', label: 'Nombre' },
+    { key: 'type', label: 'Tipo' },
+    { key: 'rfc', label: 'RFC' },
+    { key: 'curp', label: 'CURP' },
+    { key: 'birthDate', label: 'Fecha Nac.' },
+    { key: 'reason', label: 'Motivo' },
+    { key: 'aliases', label: 'Alias' },
+    { key: 'address', label: 'Dirección' },
+    { key: 'sourceList', label: 'Fuente' }
+  ];
+
   // Asegurar que el botón tenga el texto y el spinner
   if (uploadButton) {
     if (!buttonText.parentNode) {
@@ -450,20 +464,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const firstEntry = entries[0];
       const columns = [];
       
-      // Columnas predefinidas en orden preferido
-      const preferredColumns = [
-        { key: 'fullName', label: 'Nombre' },
-        { key: 'name', label: 'Nombre' },
-        { key: 'type', label: 'Tipo' },
-        { key: 'rfc', label: 'RFC' },
-        { key: 'curp', label: 'CURP' },
-        { key: 'birthDate', label: 'Fecha Nac.' },
-        { key: 'reason', label: 'Motivo' },
-        { key: 'aliases', label: 'Alias' },
-        { key: 'address', label: 'Dirección' },
-        { key: 'sourceList', label: 'Fuente' }
-      ];
-      
       // Añadir columnas predefinidas si existen en los datos
       preferredColumns.forEach(col => {
         if (firstEntry.hasOwnProperty(col.key)) {
@@ -535,7 +535,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const exportButton = document.getElementById('exportTableButton');
     if (exportButton) {
       exportButton.classList.remove('hidden');
-      exportButton.addEventListener('click', exportToExcel);
+      // Remover cualquier evento anterior
+      exportButton.replaceWith(exportButton.cloneNode(true));
+      // Agregar el nuevo evento
+      document.getElementById('exportTableButton').addEventListener('click', exportToExcel);
     }
   }
 
