@@ -1,5 +1,5 @@
 {
-  "name": "acta-extractor",
+  "name": "kyc-ocr-extractor",
   "version": "1.0.0",
   "description": "Sistema para extraer información de actas constitutivas y oficios de LBP",
   "main": "server.js",
