@@ -3,8 +3,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const uploadButton = document.getElementById("uploadButton");
   const buttonText = document.getElementById("buttonText") || document.createElement("span");
   const spinner = document.querySelector(".spinner");
-  const copyButton = document.getElementById("copyButton");
+  const resultsContainer = document.getElementById("resultsContainer");
   const resultsDiv = document.getElementById("results");
+  const errorMessageDiv = document.getElementById("errorMessage");
+  const errorTextSpan = document.getElementById("errorText");
+  const copyButton = document.getElementById("copyButton");
+  const statusMessageDiv = document.getElementById("statusMessage"); 
+  const tableContainer = document.getElementById("tableContainer"); 
 
   // Asegurar que el botón tenga el texto y el spinner
   if (uploadButton) {
@@ -41,35 +46,117 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Agregar manejador para el envío del formulario
+  const basePath = "/kyc-ocr-extractor";
+  const uploadUrl = `${basePath}/api/upload`;
+
+  // Manejar envío de formulario con AJAX
   if (uploadForm) {
-    uploadForm.addEventListener("submit", function(event) {
-      // Mostrar el spinner y deshabilitar el botón durante el envío
+    uploadForm.addEventListener("submit", async function(event) {
+      // Prevenir el envío normal del formulario
+      event.preventDefault();
+      
+      // Actualizar UI: mostrar spinner y deshabilitar botón
       if (uploadButton) {
         uploadButton.disabled = true;
         if (spinner) spinner.style.display = "inline-block";
         if (buttonText) buttonText.textContent = "Procesando...";
       }
       
+      // Mostrar mensaje de estado
+      if (statusMessageDiv) {
+        statusMessageDiv.textContent = "Iniciando proceso... Convirtiendo PDF a imágenes...";
+        statusMessageDiv.classList.remove("hidden");
+      }
+      
+      // Resetear contenedores de resultados
+      if (resultsContainer) resultsContainer.classList.add("hidden");
+      if (errorMessageDiv) errorMessageDiv.classList.add("hidden");
+      if (resultsDiv) resultsDiv.textContent = "Esperando resultados...";
+      if (copyButton) copyButton.classList.add("hidden");
+      if (tableContainer) tableContainer.innerHTML = "";
+      
       // Validar el formulario
       const fileInput = document.getElementById("document");
       if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        alert("Por favor, selecciona un archivo PDF.");
-        event.preventDefault();
+        showError("Por favor, selecciona un archivo PDF.");
         resetFormState();
-        return false;
+        return;
       }
       
       const file = fileInput.files[0];
       if (file.type !== "application/pdf") {
-        alert("Solo se permiten archivos PDF.");
-        event.preventDefault();
+        showError("Solo se permiten archivos PDF.");
         resetFormState();
-        return false;
+        return;
       }
       
-      // Continuar con el envío del formulario (POST al action especificado)
-      return true;
+      try {
+        // Crear FormData para enviar
+        const formData = new FormData(uploadForm);
+        
+        // Actualizar mensaje de estado
+        if (statusMessageDiv) {
+          statusMessageDiv.textContent = "Extrayendo texto con IA. Esto puede tardar varios minutos dependiendo del tamaño y complejidad del documento...";
+        }
+        
+        // Enviar solicitud AJAX
+        console.log(`Enviando solicitud a: ${uploadUrl}`);
+        const response = await fetch(uploadUrl, {
+          method: "POST",
+          body: formData
+        });
+        
+        // Actualizar mensaje de estado
+        if (statusMessageDiv) {
+          statusMessageDiv.textContent = "Procesamiento completado. Obteniendo y mostrando resultados...";
+        }
+        
+        // Procesar respuesta
+        const result = await response.json();
+        
+        // Verificar si hay errores HTTP
+        if (!response.ok) {
+          throw new Error(result.error || `Error del servidor: ${response.status}`);
+        }
+        
+        // Verificar éxito en la respuesta
+        if (result.success) {
+          // Mostrar resultados
+          displayResults(result.data);
+          
+          // Obtener tipo de documento
+          const docTypeInput = uploadForm.querySelector('input[name="documentType"]');
+          const docType = docTypeInput ? docTypeInput.value : null;
+          
+          // Renderizar tabla si es necesario
+          if (tableContainer && result.data) {
+            if (docType === "acta-constitutiva") {
+              renderActaConstitutivaTable(result.data);
+            } else if (docType === "lista-bloqueados") {
+              renderListaBloqueadosTable(result.data);
+            }
+            tableContainer.classList.remove("hidden");
+          }
+          
+          // Actualizar UI
+          if (resultsContainer) resultsContainer.classList.remove("hidden");
+          if (errorMessageDiv) errorMessageDiv.classList.add("hidden");
+          if (copyButton) copyButton.classList.remove("hidden");
+          if (statusMessageDiv) statusMessageDiv.textContent = "¡Proceso finalizado con éxito!";
+        } else {
+          // Mostrar error
+          showError(result.error || "Ocurrió un error desconocido durante el procesamiento.");
+          if (statusMessageDiv) statusMessageDiv.textContent = "Proceso finalizado con errores.";
+        }
+      } catch (error) {
+        // Manejar errores
+        console.error("Error en la solicitud:", error);
+        showError(error.message || "Error de conexión o al procesar la solicitud.");
+        if (statusMessageDiv) statusMessageDiv.textContent = "Error crítico durante el proceso.";
+      } finally {
+        // Resetear estado del botón
+        resetFormState();
+      }
     });
   }
 
@@ -94,6 +181,39 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Función para mostrar resultados
+  function displayResults(data) {
+    if (resultsDiv) {
+      try {
+        // Formatear JSON para mostrar
+        resultsDiv.textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        console.error("Error al formatear resultados:", e);
+        resultsDiv.textContent = "Error al mostrar los resultados formateados.";
+      }
+    }
+  }
+
+  // Función para mostrar errores
+  function showError(message) {
+    if (errorMessageDiv && errorTextSpan) {
+      errorTextSpan.textContent = message;
+      errorMessageDiv.classList.remove("hidden");
+    }
+    // Asegurar que los resultados se oculten si hay error
+    if (resultsContainer && copyButton?.classList.contains("hidden")) {
+      resultsContainer.classList.add("hidden");
+    } else if (resultsContainer) {
+      if (resultsDiv) resultsDiv.textContent = "";
+      if (copyButton) copyButton.classList.add("hidden");
+    }
+    // Limpiar tabla si existe
+    if (tableContainer) {
+      tableContainer.innerHTML = "";
+      tableContainer.classList.add("hidden");
+    }
+  }
+
   // Función para resetear el estado del formulario
   function resetFormState() {
     if (uploadButton) {
@@ -101,5 +221,260 @@ document.addEventListener("DOMContentLoaded", () => {
       if (spinner) spinner.style.display = "none";
       if (buttonText) buttonText.textContent = "Procesar Documento";
     }
+  }
+  
+  // Función para renderizar la tabla de Acta Constitutiva
+  function renderActaConstitutivaTable(data) {
+    if (!tableContainer || !data) return;
+    
+    let html = `
+      <div class="mt-8">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Vista de Tabla</h3>
+        
+        <div class="mb-6 overflow-x-auto">
+          <h4 class="text-lg font-semibold text-gray-700 mb-2">Información General</h4>
+          <table class="min-w-full bg-white border border-gray-300 mb-4">
+            <tbody>
+              <tr class="border-b">
+                <th class="text-left py-2 px-4 bg-gray-100">Razón Social</th>
+                <td class="py-2 px-4">${data.companyName || 'No especificado'}</td>
+              </tr>
+              <tr class="border-b">
+                <th class="text-left py-2 px-4 bg-gray-100">RFC</th>
+                <td class="py-2 px-4">${data.companyRfc || 'No especificado'}</td>
+              </tr>
+              <tr class="border-b">
+                <th class="text-left py-2 px-4 bg-gray-100">Fecha de Constitución</th>
+                <td class="py-2 px-4">${data.incorporationDate || 'No especificado'}</td>
+              </tr>
+              <tr class="border-b">
+                <th class="text-left py-2 px-4 bg-gray-100">Duración</th>
+                <td class="py-2 px-4">${data.duration || 'No especificado'}</td>
+              </tr>
+              <tr>
+                <th class="text-left py-2 px-4 bg-gray-100">Capital Social</th>
+                <td class="py-2 px-4">${
+                  data.capital ? 
+                  `${data.capital.amount || ''} ${data.capital.currency || ''} ${data.capital.description || ''}` : 
+                  'No especificado'
+                }</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>`;
+        
+    // Añadir sección de socios si existen
+    if (data.partners && data.partners.length > 0) {
+      html += `
+        <div class="mb-6 overflow-x-auto">
+          <h4 class="text-lg font-semibold text-gray-700 mb-2">Socios</h4>
+          <table class="min-w-full bg-white border border-gray-300">
+            <thead>
+              <tr class="bg-gray-100 border-b">
+                <th class="py-2 px-3 text-left">Nombre</th>
+                <th class="py-2 px-3 text-left">RFC</th>
+                <th class="py-2 px-3 text-left">CURP</th>
+                <th class="py-2 px-3 text-left">Nacionalidad</th>
+                <th class="py-2 px-3 text-left">Aportación</th>
+              </tr>
+            </thead>
+            <tbody>`;
+      
+      data.partners.forEach(partner => {
+        html += `
+              <tr class="border-b">
+                <td class="py-2 px-3">${partner.name || ''}</td>
+                <td class="py-2 px-3">${partner.rfc || ''}</td>
+                <td class="py-2 px-3">${partner.curp || ''}</td>
+                <td class="py-2 px-3">${partner.nationality || ''}</td>
+                <td class="py-2 px-3">${partner.contribution || ''}</td>
+              </tr>`;
+      });
+      
+      html += `
+            </tbody>
+          </table>
+        </div>`;
+    }
+    
+    // Añadir información notarial
+    if (data.notaryInfo) {
+      html += `
+        <div class="mb-6 overflow-x-auto">
+          <h4 class="text-lg font-semibold text-gray-700 mb-2">Información Notarial</h4>
+          <table class="min-w-full bg-white border border-gray-300">
+            <tbody>
+              <tr class="border-b">
+                <th class="text-left py-2 px-4 bg-gray-100">Notario</th>
+                <td class="py-2 px-4">${data.notaryInfo.name || 'No especificado'}</td>
+              </tr>
+              <tr class="border-b">
+                <th class="text-left py-2 px-4 bg-gray-100">Número</th>
+                <td class="py-2 px-4">${data.notaryInfo.number || 'No especificado'}</td>
+              </tr>
+              <tr>
+                <th class="text-left py-2 px-4 bg-gray-100">Ubicación</th>
+                <td class="py-2 px-4">${data.notaryInfo.location || 'No especificado'}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>`;
+    }
+    
+    // Añadir objeto social
+    if (data.businessPurpose) {
+      html += `
+        <div class="mb-6">
+          <h4 class="text-lg font-semibold text-gray-700 mb-2">Objeto Social</h4>
+          <div class="bg-white border border-gray-300 p-4">
+            <p class="whitespace-pre-line">${data.businessPurpose}</p>
+          </div>
+        </div>`;
+    }
+    
+    // Añadir administración
+    if (data.managementBody) {
+      html += `
+        <div class="mb-6">
+          <h4 class="text-lg font-semibold text-gray-700 mb-2">Administración</h4>
+          <div class="bg-white border border-gray-300 p-4">
+            <p class="whitespace-pre-line">${data.managementBody}</p>
+          </div>
+        </div>`;
+    }
+    
+    // Añadir representantes legales
+    if (data.legalRepresentatives && data.legalRepresentatives.length > 0) {
+      html += `
+        <div class="mb-6">
+          <h4 class="text-lg font-semibold text-gray-700 mb-2">Representantes Legales</h4>
+          <ul class="list-disc pl-5 space-y-1">`;
+      
+      data.legalRepresentatives.forEach(rep => {
+        html += `<li>${rep}</li>`;
+      });
+      
+      html += `
+          </ul>
+        </div>`;
+    }
+    
+    // Cerrar el contenedor principal
+    html += `</div>`;
+    
+    tableContainer.innerHTML = html;
+  }
+  
+  // Función para renderizar la tabla de Lista de Bloqueados
+  function renderListaBloqueadosTable(data) {
+    if (!tableContainer || !data) return;
+    
+    console.log('Data recibida para la tabla:', JSON.stringify(data).substring(0, 500) + '...');
+    
+    // Detectar la estructura del JSON
+    let entries = [];
+    if (data.entries && Array.isArray(data.entries)) {
+      entries = data.entries;
+    } else if (Array.isArray(data)) {
+      entries = data;
+    } else {
+      const possibleArrays = Object.values(data).filter(val => Array.isArray(val));
+      if (possibleArrays.length > 0) {
+        entries = possibleArrays[0];
+      }
+    }
+    
+    console.log(`Se detectaron ${entries.length} entradas para mostrar en la tabla`);
+    
+    let html = `
+      <div class="mt-8">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Vista de Tabla</h3>`;
+        
+    if (!entries || entries.length === 0) {
+      html += `
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+          <p class="text-yellow-700">No se detectaron entradas en formato tabular. Revisa el JSON para más detalles.</p>
+        </div>`;
+    } else {
+      // Determinar columnas basadas en la primera entrada
+      const firstEntry = entries[0];
+      const columns = [];
+      
+      // Columnas predefinidas en orden preferido
+      const preferredColumns = [
+        { key: 'fullName', label: 'Nombre' },
+        { key: 'name', label: 'Nombre' },
+        { key: 'type', label: 'Tipo' },
+        { key: 'rfc', label: 'RFC' },
+        { key: 'curp', label: 'CURP' },
+        { key: 'birthDate', label: 'Fecha Nac.' },
+        { key: 'reason', label: 'Motivo' },
+        { key: 'aliases', label: 'Alias' },
+        { key: 'address', label: 'Dirección' },
+        { key: 'sourceList', label: 'Fuente' }
+      ];
+      
+      // Añadir columnas predefinidas si existen en los datos
+      preferredColumns.forEach(col => {
+        if (firstEntry.hasOwnProperty(col.key)) {
+          columns.push(col);
+        }
+      });
+      
+      // Añadir cualquier columna adicional
+      Object.keys(firstEntry).forEach(key => {
+        if (!columns.some(col => col.key === key) && 
+            typeof firstEntry[key] !== 'object' && 
+            key !== 'id' && 
+            key !== '_id') {
+          columns.push({ key, label: key.charAt(0).toUpperCase() + key.slice(1) });
+        }
+      });
+      
+      html += `
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white border border-gray-300">
+            <thead>
+              <tr class="bg-gray-100 border-b">`;
+              
+      // Generar encabezados dinámicamente
+      columns.forEach(col => {
+        html += `<th class="py-2 px-3 text-left">${col.label}</th>`;
+      });
+              
+      html += `
+              </tr>
+            </thead>
+            <tbody>`;
+          
+      entries.forEach(entry => {
+        html += `<tr class="border-b">`;
+        
+        columns.forEach(col => {
+          const value = entry[col.key];
+          let displayValue = '';
+          
+          if (Array.isArray(value) && value.length > 0) {
+            displayValue = value.join(', ');
+          } else if (value !== null && value !== undefined) {
+            displayValue = String(value);
+          }
+          
+          html += `<td class="py-2 px-3">${displayValue}</td>`;
+        });
+        
+        html += `</tr>`;
+      });
+      
+      html += `
+            </tbody>
+          </table>
+        </div>`;
+    }
+    
+    // Cerrar el contenedor principal
+    html += `</div>`;
+    
+    tableContainer.innerHTML = html;
   }
 });
