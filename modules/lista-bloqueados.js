@@ -5,6 +5,7 @@ const poppler = require('pdf-poppler');
 const OpenAI = require('openai');
 const os = require('os');
 const popplerFix = require('./poppler-fix');
+const pdfConverter = require('./pdf-converter');
 
 // Detectar si estamos en macOS
 const isMacOS = os.platform() === 'darwin';
@@ -16,7 +17,7 @@ const openai = new OpenAI({
 });
 
 /**
- * Convierte un archivo PDF a imágenes PNG
+ * Convierte un archivo PDF a imágenes
  * Esta función transforma cada página del PDF en una imagen individual 
  * para facilitar el procesamiento OCR posterior
  * 
@@ -25,97 +26,11 @@ const openai = new OpenAI({
  * @throws {Error} - Error si la conversión falla
  */
 async function convertPDFToImages(pdfPath) {
-    console.log('[DEBUG] Iniciando convertPDFToImages para:', pdfPath);
     try {
-        // Si estamos en macOS, usar nuestra solución alternativa
-        if (isMacOS) {
-            console.log('[DEBUG] Usando popplerFix para macOS');
-            // Verificar instalación primero
-            const popplerInfo = popplerFix.checkPopplerInstallation();
-            if (popplerInfo.error) {
-                throw new Error(`Problema con poppler: ${popplerInfo.error}. Por favor instala poppler con: brew install poppler`);
-            }
-            
-            // Usar las mismas opciones que el módulo original
-            const opts = {
-                format: 'png',
-                out_dir: 'uploads',
-                out_prefix: path.basename(pdfPath, '.pdf'),
-                page: null,
-                scale: 2.0 // Mejor calidad
-            };
-            
-            return await popplerFix.convertPDFToImages(pdfPath, opts);
-        }
-        
-        // Para otras plataformas, usar el módulo original
-        const opts = {
-            format: 'png', // Mejor calidad con PNG
-            out_dir: 'uploads',
-            out_prefix: path.basename(pdfPath, '.pdf'),
-            page: null // Convertir todas las páginas
-        };
-
-        console.log('[DEBUG] Configuración de conversión:', JSON.stringify(opts));
-        console.log('[DEBUG] Llamando a poppler.convert...');
-        
-        // Intentar ejecutar mediante child_process para capturar la salida
-        try {
-            const { execSync } = require('child_process');
-            const popplerLibPath = path.join(__dirname, '../node_modules/pdf-poppler/lib/osx/poppler-0.66/bin/pdftocairo');
-            
-            console.log('[DEBUG] Verificando si existe el binario interno:', popplerLibPath);
-            if (fs.existsSync(popplerLibPath)) {
-                console.log('[DEBUG] El binario interno existe');
-            } else {
-                console.log('[DEBUG] ¡ALERTA! El binario interno NO existe');
-            }
-            
-            // Intentar ejecutar el comando directamente para ver la salida
-            try {
-                console.log('[DEBUG] Intentando ejecutar comando directamente...');
-                const outputPrefix = path.join('uploads', path.basename(pdfPath, '.pdf'));
-                const cmd = `/opt/homebrew/bin/pdftocairo -png "${pdfPath}" "${outputPrefix}"`;
-                console.log('[DEBUG] Comando:', cmd);
-                const output = execSync(cmd, { encoding: 'utf8' });
-                console.log('[DEBUG] Salida del comando:', output);
-            } catch (execError) {
-                console.error('[DEBUG] Error ejecutando comando directamente:', execError.message);
-                if (execError.stderr) console.error('[DEBUG] Error stderr:', execError.stderr);
-                if (execError.stdout) console.log('[DEBUG] Error stdout:', execError.stdout);
-            }
-        } catch (childProcessError) {
-            console.error('[DEBUG] Error usando child_process:', childProcessError);
-        }
-        
-        // Continuar con el método normal
-        try {
-        await poppler.convert(pdfPath, opts);
-            console.log('[DEBUG] Conversión con poppler completada exitosamente');
-        } catch (popplerError) {
-            console.error('[DEBUG] Error en poppler.convert:', popplerError);
-            throw popplerError;
-        }
-        
-        // Obtener todas las imágenes generadas
-        console.log('[DEBUG] Buscando imágenes generadas...');
-        const pdfBaseName = path.basename(pdfPath, '.pdf');
-        const files = fs.readdirSync('uploads');
-        const matchingFiles = files
-            .filter(file => 
-                file.startsWith(pdfBaseName) && 
-                file !== path.basename(pdfPath) && // Excluir el PDF original
-                (file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg'))
-            )
-            .map(file => path.join('uploads', file));
-            
-        console.log('[DEBUG] Imágenes encontradas:', matchingFiles.length);
-        console.log('[DEBUG] Listado de imágenes:', matchingFiles);
-        
-        return matchingFiles;
+        console.log('[DEBUG] Usando sharp-pdf para convertir PDF a imágenes');
+        return await pdfConverter.convertPdfToImages(pdfPath, 'uploads');
     } catch (error) {
-        console.error('[DEBUG] Error detallado en convertPDFToImages:', error);
-        console.error('[DEBUG] Stack trace:', error.stack);
+        console.error('Error al convertir PDF a imágenes:', error);
         throw new Error('Error al convertir PDF a imágenes: ' + error.message);
     }
 }

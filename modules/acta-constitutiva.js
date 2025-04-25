@@ -5,6 +5,7 @@ const poppler = require('pdf-poppler');
 const OpenAI = require('openai');
 const os = require('os');
 const popplerFix = require('./poppler-fix');
+const pdfConverter = require('./pdf-converter');
 
 // Detectar si estamos en macOS
 const isMacOS = os.platform() === 'darwin';
@@ -26,47 +27,8 @@ const openai = new OpenAI({
  */
 async function convertPDFToImages(pdfPath) {
     try {
-        // Si estamos en macOS, usar nuestra solución alternativa
-        if (isMacOS) {
-            console.log('[DEBUG] Usando popplerFix para macOS');
-            // Verificar instalación primero
-            const popplerInfo = popplerFix.checkPopplerInstallation();
-            if (popplerInfo.error) {
-                throw new Error(`Problema con poppler: ${popplerInfo.error}. Por favor instala poppler con: brew install poppler`);
-            }
-            
-            // Usar las mismas opciones que el módulo original
-            const opts = {
-                format: 'png',
-                out_dir: 'uploads',
-                out_prefix: path.basename(pdfPath, '.pdf'),
-                page: null,
-                scale: 2.0 // Mejor calidad
-            };
-            
-            return await popplerFix.convertPDFToImages(pdfPath, opts);
-        }
-        
-        // Para otras plataformas, usar el módulo original
-        const opts = {
-            format: 'png', // Mejor calidad con PNG
-            out_dir: 'uploads',
-            out_prefix: path.basename(pdfPath, '.pdf'),
-            page: null // Convertir todas las páginas
-        };
-
-        await poppler.convert(pdfPath, opts);
-        
-        // Obtener todas las imágenes generadas
-        const pdfBaseName = path.basename(pdfPath, '.pdf');
-        const files = fs.readdirSync('uploads');
-        return files
-            .filter(file => 
-                file.startsWith(pdfBaseName) && 
-                file !== path.basename(pdfPath) && // Excluir el PDF original
-                (file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg'))
-            )
-            .map(file => path.join('uploads', file));
+        console.log('[DEBUG] Usando sharp-pdf para convertir PDF a imágenes');
+        return await pdfConverter.convertPdfToImages(pdfPath, 'uploads');
     } catch (error) {
         console.error('Error al convertir PDF a imágenes:', error);
         throw new Error('Error al convertir PDF a imágenes: ' + error.message);
