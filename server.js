@@ -4,14 +4,6 @@ const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const systemCheck = require('./system-check');
-
-// Verificar compatibilidad del sistema operativo
-if (!systemCheck.checkOSCompatibility()) {
-    console.error("El sistema operativo actual no es compatible o no tiene las dependencias necesarias.");
-    console.error("Por favor, revise los mensajes anteriores para más información.");
-    process.exit(1);
-}
 
 // Módulos específicos para cada tipo de documento
 const actaConstitutiva = require('./modules/acta-constitutiva');
@@ -20,13 +12,10 @@ const listaBloqueados = require('./modules/lista-bloqueados');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Añadir al principio del archivo, después de las constantes
-const basePath = '/kyc-ocr-extractor';
-
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(basePath, express.static('public'));
+app.use(express.static('public'));
 
 /**
  * Configuración de almacenamiento para Multer
@@ -86,7 +75,7 @@ if (!fs.existsSync('uploads')) {
  * Maneja la carga del archivo, procesamiento OCR y análisis con IA
  * @route POST /api/upload
  */
-app.post(`${basePath}/api/upload`, upload.single('document'), async (req, res) => {
+app.post('/api/upload', upload.single('document'), async (req, res) => {
     const tempFilesToDelete = [];
     try {
         if (!req.file) {

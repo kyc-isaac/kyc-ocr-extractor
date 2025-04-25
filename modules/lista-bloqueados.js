@@ -8,7 +8,6 @@ const popplerFix = require('./poppler-fix');
 
 // Detectar si estamos en macOS
 const isMacOS = os.platform() === 'darwin';
-const isLinux = os.platform() === 'linux';
 console.log(`[INFO] Sistema operativo: ${os.platform()}, Usando fix de poppler: ${isMacOS}`);
 
 // Initialize OpenAI
@@ -91,7 +90,7 @@ async function convertPDFToImages(pdfPath) {
         
         // Continuar con el método normal
         try {
-            await poppler.convert(pdfPath, opts);
+        await poppler.convert(pdfPath, opts);
             console.log('[DEBUG] Conversión con poppler completada exitosamente');
         } catch (popplerError) {
             console.error('[DEBUG] Error en poppler.convert:', popplerError);

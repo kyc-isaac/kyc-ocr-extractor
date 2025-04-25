@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
             // Enviar solicitud al servidor
-            const response = await fetch('/kyc-ocr-extractor/api/upload', {
+            const response = await fetch('/api/upload', {
                 method: 'POST',
                 body: formData
             });
