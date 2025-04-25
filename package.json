@@ -17,14 +17,14 @@
   "author": "Your Name",
   "license": "ISC",
   "dependencies": {
-    "dotenv": "^16.0.3", // Loads environment variables from .env file
-    "express": "^4.18.2", // Web framework
-    "multer": "^1.4.5-lts.1", // Middleware for handling file uploads
-    "openai": "^4.0.0", // OpenAI API client library
-    "pdf-img-convert": "^1.2.1", // Library to convert PDF pages to images (uses canvas)
-    "uuid": "^9.0.0" // For generating unique IDs if needed
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "openai": "^4.0.0",
+    "pdf-img-convert": "^1.2.1",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.20" // Utility to automatically restart the server during development
+    "nodemon": "^2.0.20"
   }
 }
