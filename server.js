@@ -12,7 +12,7 @@ const openaiProcessor = require("./modules/openai_processor"); // Use updated pr
 // --- Configuration ---
 const app = express();
 const port = process.env.PORT || 3042;
-const basePath = process.env.BASE_PATH || "";
+const basePath = ""; // Eliminar la variable de entorno BASE_PATH ya que Apache ya agrega el prefijo
 const UPLOAD_DIR = path.join(__dirname, "uploads");
 
 // --- Middleware ---
@@ -477,7 +477,7 @@ app.post(
 ensureUploadDirExists()
   .then(() => {
     app.listen(port, () => {
-      console.log(`Servidor corriendo en http://localhost:${port}/kyc-ocr-extractor`);
+      console.log(`Servidor corriendo en http://localhost:${port}`);
       console.log(`Upload directory: ${UPLOAD_DIR}`);
       
       // Verificar si se ha configurado la API key de OpenAI
