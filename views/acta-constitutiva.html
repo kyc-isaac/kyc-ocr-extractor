@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extractor de Actas Constitutivas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="./css/style.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Style for JSON display */
+        .json-display {
+            background-color: #2d2d2d;
+            /* Dark background */
+            color: #f8f8f2;
+            /* Light text */
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            /* Rounded corners */
+            overflow-x: auto;
+            /* Allow horizontal scrolling for long lines */
+            font-family: 'Courier New', Courier, monospace;
+            /* Monospace font */
+            font-size: 0.9rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            /* Preserve whitespace and wrap */
+            word-wrap: break-word;
+            /* Break long words */
+            margin-top: 1.5rem;
+        }
+
+        /* Hide spinner by default */
+        .spinner {
+            display: none;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100 flex flex-col items-center min-h-screen p-6">
+
+    <header class="text-center mb-8 w-full max-w-3xl">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Extractor de Actas Constitutivas</h1>
+        <p class="text-lg text-gray-600 mb-4">Sube un acta constitutiva mexicana (PDF) y extraeremos la información
+            automáticamente.</p>
+        <a href="./" class="text-blue-600 hover:text-blue-800 transition-colors duration-200">&larr; Volver al
+            inicio</a>
+    </header>
+
+    <div class="card bg-white rounded-lg shadow-md p-8 w-full max-w-3xl mb-8">
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div class="form-group mb-6">
+                <label for="document" class="block text-lg font-medium text-gray-700 mb-2">Selecciona el archivo PDF del
+                    acta:</label>
+                <input
+                    class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 p-3"
+                    type="file" id="document" name="document" accept=".pdf" required>
+                <p class="mt-1 text-sm text-gray-500">Solo archivos PDF, tamaño máximo 50MB.</p>
+            </div>
+            <input type="hidden" name="documentType" value="acta-constitutiva">
+
+            <button type="submit" id="uploadButton"
+                class="w-full inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                <svg class="spinner animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg"
+                    fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                <span id="buttonText">Procesar Documento</span>
+            </button>
+        </form>
+    </div>
+
+    <div id="resultsContainer" class="results-container bg-white rounded-lg shadow-md p-8 w-full max-w-3xl hidden">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Información Extraída</h2>
+        <div id="errorMessage"
+            class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 hidden" role="alert">
+            <strong class="font-bold">Error:</strong>
+            <span class="block sm:inline" id="errorText"></span>
+        </div>
+        <div id="results" class="json-display">
+            Esperando resultados...
+        </div>
+        <button id="copyButton"
+            class="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200 hidden">
+            Copiar JSON
+        </button>
+    </div>
+
+    <footer class="mt-10 text-center text-gray-500 text-sm">
+        &copy; 2025 Tu Compañía.
+    </footer>
+
+    <script src="./js/upload.js"></script>
+</body>
+
+</html>
