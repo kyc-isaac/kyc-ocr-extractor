@@ -384,7 +384,70 @@ document.addEventListener("DOMContentLoaded", () => {
     
     tableContainer.innerHTML = html;
   }
-  
+
+  // Función para crear un elemento copiable
+  function createCopyableValue(value, label = '') {
+    if (!value) return value;
+    
+    const container = document.createElement('div');
+    container.className = 'copyable-value';
+    
+    const textSpan = document.createElement('span');
+    textSpan.textContent = value;
+    
+    const copyIcon = document.createElement('button');
+    copyIcon.className = 'copy-icon';
+    copyIcon.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+      </svg>
+    `;
+    
+    const tooltip = document.createElement('div');
+    tooltip.className = 'copy-tooltip';
+    tooltip.textContent = 'Copiar';
+    
+    copyIcon.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      try {
+        await navigator.clipboard.writeText(value);
+        copyIcon.classList.add('copied');
+        tooltip.textContent = '¡Copiado!';
+        tooltip.classList.add('show');
+        
+        setTimeout(() => {
+          copyIcon.classList.remove('copied');
+          tooltip.textContent = 'Copiar';
+          tooltip.classList.remove('show');
+        }, 2000);
+      } catch (err) {
+        console.error('Error al copiar:', err);
+        tooltip.textContent = 'Error al copiar';
+        tooltip.classList.add('show');
+        
+        setTimeout(() => {
+          tooltip.classList.remove('show');
+        }, 2000);
+      }
+    });
+    
+    copyIcon.addEventListener('mouseenter', () => {
+      tooltip.classList.add('show');
+    });
+    
+    copyIcon.addEventListener('mouseleave', () => {
+      if (!copyIcon.classList.contains('copied')) {
+        tooltip.classList.remove('show');
+      }
+    });
+    
+    container.appendChild(textSpan);
+    container.appendChild(copyIcon);
+    container.appendChild(tooltip);
+    
+    return container;
+  }
+
   // Función para renderizar la tabla de Lista de Bloqueados
   function renderListaBloqueadosTable(data) {
     if (!tableContainer || !data) return;
@@ -429,7 +492,7 @@ document.addEventListener("DOMContentLoaded", () => {
         html += `
               <tr>
                 <th>Número de Oficio</th>
-                <td>${data.documentNumber}</td>
+                <td class="copyable-cell">${data.documentNumber}</td>
               </tr>`;
       }
       
@@ -437,7 +500,7 @@ document.addEventListener("DOMContentLoaded", () => {
         html += `
               <tr>
                 <th>Tipo de Documento</th>
-                <td>${data.documentType}</td>
+                <td class="copyable-cell">${data.documentType}</td>
               </tr>`;
       }
       
@@ -445,7 +508,7 @@ document.addEventListener("DOMContentLoaded", () => {
         html += `
               <tr>
                 <th>Acuerdo</th>
-                <td>${data.agreement}</td>
+                <td class="copyable-cell">${data.agreement}</td>
               </tr>`;
       }
       
@@ -514,7 +577,7 @@ document.addEventListener("DOMContentLoaded", () => {
             displayValue = String(value);
           }
           
-          html += `<td>${displayValue}</td>`;
+          html += `<td class="copyable-cell">${displayValue}</td>`;
         });
         
         html += `</tr>`;
@@ -530,6 +593,16 @@ document.addEventListener("DOMContentLoaded", () => {
     html += `</div>`;
     
     tableContainer.innerHTML = html;
+
+    // Agregar funcionalidad de copiado a todas las celdas copiables
+    document.querySelectorAll('.copyable-cell').forEach(cell => {
+      const value = cell.textContent.trim();
+      if (value) {
+        const copyableValue = createCopyableValue(value);
+        cell.innerHTML = '';
+        cell.appendChild(copyableValue);
+      }
+    });
 
     // Mostrar el botón de exportación a Excel
     const exportButton = document.getElementById('exportTableButton');

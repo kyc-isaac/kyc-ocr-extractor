@@ -138,6 +138,53 @@
                 font-size: 0.75rem;
             }
         }
+
+        .copy-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            margin-left: 8px;
+            color: #6B7280;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .copy-icon:hover {
+            color: #2563EB;
+        }
+
+        .copy-icon.copied {
+            color: #059669;
+        }
+
+        .copyable-value {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .copyable-value:hover .copy-icon {
+            opacity: 1;
+        }
+
+        .copy-tooltip {
+            position: absolute;
+            background-color: #1F2937;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 50;
+        }
+
+        .copy-tooltip.show {
+            opacity: 1;
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
