@@ -12,13 +12,20 @@ const openaiProcessor = require("./modules/openai_processor"); // Use updated pr
 // --- Configuration ---
 const app = express();
 const port = process.env.PORT || 3042;
-const basePath = ""; // Eliminar la variable de entorno BASE_PATH ya que Apache ya agrega el prefijo
+// Configuración de ruta base para entornos de producción
+const basePath = ""; // Ya nos encargamos del prefijo en Apache
 const UPLOAD_DIR = path.join(__dirname, "uploads");
 
 // --- Middleware ---
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(basePath, express.static(path.join(__dirname, "public")));
+
+// Configuración de depuración para ver las rutas
+app.use((req, res, next) => {
+  console.log(`[DEBUG] Request path: ${req.path}`);
+  next();
+});
 
 // --- Ensure Upload Directory Exists ---
 const ensureUploadDirExists = async () => {
@@ -69,6 +76,37 @@ app.get(`${basePath}/acta-constitutiva`, (req, res) =>
 app.get(`${basePath}/lista-bloqueados`, (req, res) =>
   res.sendFile(path.join(__dirname, "views", "lista-bloqueados.html"))
 );
+
+// Ruta de diagnóstico - responderá a cualquier ruta no manejada
+app.get('*', (req, res) => {
+  res.status(200).send(`
+    <html>
+      <head>
+        <title>Diagnóstico KYC-OCR-Extractor</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          pre { background: #f4f4f4; padding: 10px; border-radius: 5px; }
+        </style>
+      </head>
+      <body>
+        <h1>Diagnóstico de KYC-OCR-Extractor</h1>
+        <p>Esta página de diagnóstico muestra información sobre la solicitud recibida:</p>
+        <pre>
+Ruta solicitada: ${req.path}
+Método: ${req.method}
+Headers: ${JSON.stringify(req.headers, null, 2)}
+Query params: ${JSON.stringify(req.query, null, 2)}
+        </pre>
+        <p>Rutas disponibles:</p>
+        <ul>
+          <li><a href="${basePath}/">Página principal</a></li>
+          <li><a href="${basePath}/acta-constitutiva">Acta Constitutiva</a></li>
+          <li><a href="${basePath}/lista-bloqueados">Lista Bloqueados</a></li>
+        </ul>
+      </body>
+    </html>
+  `);
+});
 
 // --- Helper Function to Normalize Names ---
 function normalizeName(name) {
