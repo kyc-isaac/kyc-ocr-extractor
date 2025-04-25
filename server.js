@@ -4,6 +4,14 @@ const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const systemCheck = require('./system-check');
+
+// Verificar compatibilidad del sistema operativo
+if (!systemCheck.checkOSCompatibility()) {
+    console.error("El sistema operativo actual no es compatible o no tiene las dependencias necesarias.");
+    console.error("Por favor, revise los mensajes anteriores para más información.");
+    process.exit(1);
+}
 
 // Módulos específicos para cada tipo de documento
 const actaConstitutiva = require('./modules/acta-constitutiva');

@@ -8,6 +8,7 @@ const popplerFix = require('./poppler-fix');
 
 // Detectar si estamos en macOS
 const isMacOS = os.platform() === 'darwin';
+const isLinux = os.platform() === 'linux';
 console.log(`[INFO] Sistema operativo: ${os.platform()}, Usando fix de poppler: ${isMacOS}`);
 
 // Initialize OpenAI

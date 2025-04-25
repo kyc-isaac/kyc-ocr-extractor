@@ -8,6 +8,7 @@ const popplerFix = require('./poppler-fix');
 
 // Detectar si estamos en macOS
 const isMacOS = os.platform() === 'darwin';
+const isLinux = os.platform() === 'linux';
 console.log(`[INFO] Sistema operativo: ${os.platform()}, Usando fix de poppler: ${isMacOS}`);
 
 // Initialize OpenAI
@@ -47,7 +48,8 @@ async function convertPDFToImages(pdfPath) {
             return await popplerFix.convertPDFToImages(pdfPath, opts);
         }
         
-        // Para otras plataformas, usar el módulo original
+        // Para Linux y otras plataformas, usar el módulo original
+        console.log('[DEBUG] Usando pdf-poppler estándar para', os.platform());
         const opts = {
             format: 'png', // Mejor calidad con PNG
             out_dir: 'uploads',
