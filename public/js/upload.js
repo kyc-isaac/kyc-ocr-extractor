@@ -46,21 +46,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // URL absoluta para evitar problemas relativos
   const basePath = "/kyc-ocr-extractor";
-  const uploadUrl = `${basePath}/api/upload`;
+  const uploadUrl = window.location.origin + `${basePath}/api/upload`;
 
-  // Manejar envío de formulario con AJAX
-  if (uploadForm) {
-    uploadForm.addEventListener("submit", async function(event) {
-      // Prevenir el envío normal del formulario
-      event.preventDefault();
+  // Manejar evento de clic en el botón de envío
+  if (uploadButton && uploadForm) {
+    console.log("JavaScript inicializado correctamente - Configurando evento para el botón");
+    uploadButton.addEventListener("click", async function() {
+      console.log("Botón clickeado - iniciando procesamiento");
       
       // Actualizar UI: mostrar spinner y deshabilitar botón
-      if (uploadButton) {
-        uploadButton.disabled = true;
-        if (spinner) spinner.style.display = "inline-block";
-        if (buttonText) buttonText.textContent = "Procesando...";
-      }
+      uploadButton.disabled = true;
+      if (spinner) spinner.style.display = "inline-block";
+      if (buttonText) buttonText.textContent = "Procesando...";
       
       // Mostrar mensaje de estado
       if (statusMessageDiv) {
@@ -158,6 +157,8 @@ document.addEventListener("DOMContentLoaded", () => {
         resetFormState();
       }
     });
+  } else {
+    console.error("No se encontró el botón o el formulario en el DOM");
   }
 
   // Funcionalidad para copiar JSON
