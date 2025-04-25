@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusMessageDiv = document.getElementById("statusMessage"); // Get status message div
   const tableContainer = document.getElementById("tableContainer"); // Add table container reference
 
-  const basePath = window.BASE_PATH || "/kyc-ocr-extractor";
+  const basePath = "/kyc-ocr-extractor";
   const uploadUrl = `${basePath}/api/upload`;
 
   if (uploadForm) {
