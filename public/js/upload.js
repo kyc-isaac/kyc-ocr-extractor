@@ -391,6 +391,44 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="mt-8">
         <h3 class="text-xl font-semibold text-gray-800 mb-4">Vista de Tabla</h3>`;
         
+    // Mostrar información del documento si está disponible
+    if (data.documentNumber || data.documentType || data.agreement) {
+      html += `
+        <div class="mb-6 overflow-x-auto">
+          <h4 class="text-lg font-semibold text-gray-700 mb-2">Información del Documento</h4>
+          <table class="min-w-full bg-white border border-gray-300">
+            <tbody>`;
+      
+      if (data.documentNumber) {
+        html += `
+              <tr class="border-b">
+                <th class="text-left py-2 px-4 bg-gray-100">Número de Oficio</th>
+                <td class="py-2 px-4">${data.documentNumber}</td>
+              </tr>`;
+      }
+      
+      if (data.documentType) {
+        html += `
+              <tr class="border-b">
+                <th class="text-left py-2 px-4 bg-gray-100">Tipo de Documento</th>
+                <td class="py-2 px-4">${data.documentType}</td>
+              </tr>`;
+      }
+      
+      if (data.agreement) {
+        html += `
+              <tr>
+                <th class="text-left py-2 px-4 bg-gray-100">Acuerdo</th>
+                <td class="py-2 px-4">${data.agreement}</td>
+              </tr>`;
+      }
+      
+      html += `
+            </tbody>
+          </table>
+        </div>`;
+    }
+        
     if (!entries || entries.length === 0) {
       html += `
         <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
@@ -434,6 +472,7 @@ document.addEventListener("DOMContentLoaded", () => {
       
       html += `
         <div class="overflow-x-auto">
+          <h4 class="text-lg font-semibold text-gray-700 mb-2">Personas y Entidades</h4>
           <table class="min-w-full bg-white border border-gray-300">
             <thead>
               <tr class="bg-gray-100 border-b">`;

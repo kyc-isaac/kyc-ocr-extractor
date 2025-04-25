@@ -336,13 +336,31 @@ function mergeActaConstitutivaData(pageResults) {
 }
 
 // --- Helper Function to Merge Page Data (Lista Bloqueados) ---
-// (Same as previous version, assuming extractDataFromPage returns object with 'entries' array)
 function mergeListaBloqueadosData(pageResults) {
-  const finalData = [];
+  const finalData = {
+    entries: [],
+    documentNumber: null,
+    documentType: null,
+    agreement: null
+  };
   const entryMap = new Map(); // Use RFC/CURP/Name as key for uniqueness
 
   for (const pageResult of pageResults) {
-    if (!pageResult || !Array.isArray(pageResult.entries)) continue;
+    if (!pageResult) continue;
+
+    // Extraer campos adicionales del documento si están presentes
+    if (pageResult.documentNumber && !finalData.documentNumber) {
+      finalData.documentNumber = pageResult.documentNumber;
+    }
+    if (pageResult.documentType && !finalData.documentType) {
+      finalData.documentType = pageResult.documentType;
+    }
+    if (pageResult.agreement && !finalData.agreement) {
+      finalData.agreement = pageResult.agreement;
+    }
+
+    // Procesar entradas si existen
+    if (!Array.isArray(pageResult.entries)) continue;
 
     pageResult.entries.forEach((entry) => {
       if (!entry || !entry.fullName) return;
@@ -384,7 +402,16 @@ function mergeListaBloqueadosData(pageResults) {
       }
     });
   }
-  return Array.from(entryMap.values());
+
+  // Convertir el mapa de entradas a array
+  finalData.entries = Array.from(entryMap.values());
+
+  // Eliminar campos nulos del objeto final
+  if (finalData.documentNumber === null) delete finalData.documentNumber;
+  if (finalData.documentType === null) delete finalData.documentType;
+  if (finalData.agreement === null) delete finalData.agreement;
+
+  return finalData;
 }
 
 // --- API Route for Processing Uploads ---

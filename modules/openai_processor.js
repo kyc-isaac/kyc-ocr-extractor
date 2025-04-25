@@ -52,9 +52,15 @@ const prompts = {
         - "reason": Motivo del bloqueo o sanción si se menciona EN ESTA PÁGINA para esta entrada.
         - "sourceList": Nombre o referencia de la lista de origen si se menciona EN ESTA PÁGINA.
 
+        Además, si encuentras esta información EN ESTA PÁGINA, inclúyela en el objeto JSON principal (fuera del array "entries"):
+        - "documentNumber": Número de oficio o documento (ej. "110/02/2022") si aparece al inicio del documento.
+        - "documentType": Tipo de documento ('Adición', 'Eliminación' o 'Enmienda') si se especifica.
+        - "agreement": Número de acuerdo (ej. "Acuerdo 1/2022") si se menciona.
+
         MUY IMPORTANTE:
         - Si no encuentras NINGUNA entrada de persona/entidad en esta página, devuelve un JSON con un array vacío: {"entries": []}.
         - Si para una entrada específica no encuentras alguno de los campos (ej. RFC, CURP), usa null para ese campo dentro del objeto de esa entrada.
+        - Si no encuentras los campos adicionales (documentNumber, documentType, agreement), no los incluyas en el JSON.
         - NO inventes información ni intentes recordar datos de otras páginas. Analiza solo la imagen proporcionada.
         - Tu respuesta debe ser únicamente el objeto JSON válido (con la clave "entries" conteniendo el array), sin explicaciones, comentarios, ni formato markdown.
 
