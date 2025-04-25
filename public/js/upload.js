@@ -394,39 +394,37 @@ document.addEventListener("DOMContentLoaded", () => {
     // Mostrar información del documento si está disponible
     if (data.documentNumber || data.documentType || data.agreement) {
       html += `
-        <div class="mb-6 overflow-x-auto">
-          <h4 class="text-lg font-semibold text-gray-700 mb-2">Información del Documento</h4>
-          <table class="min-w-full bg-white border border-gray-300">
-            <tbody>`;
+        <div class="document-info">
+          <h4>Información del Documento</h4>
+          <table>`;
       
       if (data.documentNumber) {
         html += `
-              <tr class="border-b">
-                <th class="text-left py-2 px-4 bg-gray-100">Número de Oficio</th>
-                <td class="py-2 px-4">${data.documentNumber}</td>
+              <tr>
+                <th>Número de Oficio</th>
+                <td>${data.documentNumber}</td>
               </tr>`;
       }
       
       if (data.documentType) {
         html += `
-              <tr class="border-b">
-                <th class="text-left py-2 px-4 bg-gray-100">Tipo de Documento</th>
-                <td class="py-2 px-4">${data.documentType}</td>
+              <tr>
+                <th>Tipo de Documento</th>
+                <td>${data.documentType}</td>
               </tr>`;
       }
       
       if (data.agreement) {
         html += `
               <tr>
-                <th class="text-left py-2 px-4 bg-gray-100">Acuerdo</th>
-                <td class="py-2 px-4">${data.agreement}</td>
+                <th>Acuerdo</th>
+                <td>${data.agreement}</td>
               </tr>`;
       }
       
       html += `
-            </tbody>
-          </table>
-        </div>`;
+            </table>
+          </div>`;
     }
         
     if (!entries || entries.length === 0) {
@@ -473,13 +471,13 @@ document.addEventListener("DOMContentLoaded", () => {
       html += `
         <div class="overflow-x-auto">
           <h4 class="text-lg font-semibold text-gray-700 mb-2">Personas y Entidades</h4>
-          <table class="min-w-full bg-white border border-gray-300">
+          <table class="data-table">
             <thead>
-              <tr class="bg-gray-100 border-b">`;
+              <tr>`;
               
       // Generar encabezados dinámicamente
       columns.forEach(col => {
-        html += `<th class="py-2 px-3 text-left">${col.label}</th>`;
+        html += `<th>${col.label}</th>`;
       });
               
       html += `
@@ -488,7 +486,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <tbody>`;
           
       entries.forEach(entry => {
-        html += `<tr class="border-b">`;
+        html += `<tr>`;
         
         columns.forEach(col => {
           const value = entry[col.key];
@@ -500,7 +498,7 @@ document.addEventListener("DOMContentLoaded", () => {
             displayValue = String(value);
           }
           
-          html += `<td class="py-2 px-3">${displayValue}</td>`;
+          html += `<td>${displayValue}</td>`;
         });
         
         html += `</tr>`;
