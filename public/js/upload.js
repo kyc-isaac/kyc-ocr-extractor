@@ -519,14 +519,37 @@ document.addEventListener("DOMContentLoaded", () => {
     const exportButton = document.getElementById('exportTableButton');
     if (exportButton) {
       exportButton.classList.remove('hidden');
-      exportButton.addEventListener('click', () => exportToExcel(entries, columns));
+      exportButton.addEventListener('click', () => exportToExcel(entries, columns, {
+        documentNumber: data.documentNumber,
+        documentType: data.documentType,
+        agreement: data.agreement
+      }));
     }
   }
 
   // Función para exportar a Excel
-  function exportToExcel(entries, columns) {
+  function exportToExcel(entries, columns, documentInfo) {
     // Crear un libro de Excel
     const wb = XLSX.utils.book_new();
+    
+    // Crear hoja de información del documento
+    const docInfo = [
+      ['Información del Documento'],
+      ['Número de Oficio', documentInfo.documentNumber || ''],
+      ['Tipo de Documento', documentInfo.documentType || ''],
+      ['Acuerdo', documentInfo.agreement || ''],
+      ['', ''], // Línea en blanco
+      ['Personas y Entidades Bloqueadas'],
+      ['', ''] // Línea en blanco
+    ];
+    
+    const wsInfo = XLSX.utils.aoa_to_sheet(docInfo);
+    
+    // Ajustar el ancho de las columnas para la información del documento
+    wsInfo['!cols'] = [{ wch: 20 }, { wch: 50 }];
+    
+    // Añadir la hoja de información al libro
+    XLSX.utils.book_append_sheet(wb, wsInfo, "Información");
     
     // Convertir los datos a formato de hoja de cálculo
     const wsData = entries.map(entry => {
@@ -538,17 +561,18 @@ document.addEventListener("DOMContentLoaded", () => {
       return row;
     });
     
-    // Crear la hoja de cálculo
+    // Crear la hoja de cálculo de personas
     const ws = XLSX.utils.json_to_sheet(wsData);
     
     // Ajustar el ancho de las columnas
     const wscols = columns.map(() => ({ wch: 30 }));
     ws['!cols'] = wscols;
     
-    // Añadir la hoja al libro
-    XLSX.utils.book_append_sheet(wb, ws, "Lista de Bloqueados");
+    // Añadir la hoja de personas al libro
+    XLSX.utils.book_append_sheet(wb, ws, "Personas");
     
     // Generar el archivo Excel
-    XLSX.writeFile(wb, "lista_bloqueados.xlsx");
+    const fileName = `lista_bloqueados_${documentInfo.documentNumber || 'sin_numero'}.xlsx`;
+    XLSX.writeFile(wb, fileName);
   }
 });
