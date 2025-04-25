@@ -19,7 +19,28 @@ const UPLOAD_DIR = path.join(__dirname, "uploads");
 // --- Middleware ---
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "public")));
+
+// Configuración para servir archivos estáticos con MIME types correctos
+app.use(express.static(path.join(__dirname, "public"), {
+  setHeaders: (res, filePath) => {
+    if (path.extname(filePath) === '.css') {
+      res.setHeader('Content-Type', 'text/css');
+    } else if (path.extname(filePath) === '.js') {
+      res.setHeader('Content-Type', 'application/javascript');
+    }
+  }
+}));
+
+// Rutas específicas para archivos JavaScript y CSS
+app.get(`${basePath}/js/upload.js`, (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(path.join(__dirname, 'public/js/upload.js'));
+});
+
+app.get(`${basePath}/css/style.css`, (req, res) => {
+  res.setHeader('Content-Type', 'text/css');
+  res.sendFile(path.join(__dirname, 'public/css/style.css'));
+});
 
 // Configuración de depuración para ver las rutas
 app.use((req, res, next) => {
