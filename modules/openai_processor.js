@@ -55,7 +55,7 @@ const prompts = {
         Además, si encuentras esta información EN ESTA PÁGINA, inclúyela en el objeto JSON principal (fuera del array "entries"):
         - "documentNumber": Número de oficio o documento (ej. "110/02/2022") si aparece al inicio del documento.
         - "documentType": Tipo de documento ('Adición', 'Eliminación' o 'Enmienda') si se especifica.
-        - "agreement": Número de acuerdo (ej. "Acuerdo 1/2022") si se menciona.
+        - "agreement": Texto EXACTO que incluya la palabra "ACUERDO" seguida de su número, (ej. "Acuerdo 1/2022")
 
         MUY IMPORTANTE:
         - Si no encuentras NINGUNA entrada de persona/entidad en esta página, devuelve un JSON con un array vacío: {"entries": []}.
